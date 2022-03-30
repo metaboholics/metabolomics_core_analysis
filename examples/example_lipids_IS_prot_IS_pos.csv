@@ -1,0 +1,25 @@
+mode,class,IS
+pos,NA,ss_untargeted
+pos,cholesterol,IS_Cholesterol_d7 [-H2O] M+H
+pos,MG,IS_18:1(d7) MAG [-H2O] M+H
+pos,DG,IS_15:0-18:1(d7) DAG [-H2O] M+H
+pos,TG,IS_15:0-18:1(d7)-15:0 TAG M+Na
+pos,LPC,IS_18:1(d7) Lyso PC M+H
+pos,LPC-O,IS_18:1(d7) Lyso PC M+H
+pos,LPE,IS_18:1(d7) Lyso PE M+H
+pos,LPE-O,IS_18:1(d7) Lyso PE M+H
+pos,LPG,IS_15:0-18:1(d7) PG M+Na
+pos,LPI,IS_15:0-18:1(d7) PI M+Na
+pos,LPS,IS_15:0-18:1(d7) PS M+H
+pos,PC,IS_15:0-18:1(d7) PC M+H
+pos,PC-P,IS_15:0-18:1(d7) PC M+H
+pos,PC-O,IS_15:0-18:1(d7) PC M+H
+pos,PE,IS_15:0-18:1(d7) PE M+H
+pos,PE-P,IS_15:0-18:1(d7) PE M+H
+pos,PE-O,IS_15:0-18:1(d7) PE M+H
+pos,PI,IS_15:0-18:1(d7) PI M+Na
+pos,PS,IS_15:0-18:1(d7) PS M+H
+pos,Cer,ss_untargeted
+pos,CerP,ss_untargeted
+pos,SM,IS_d18:1-18:1(d9) SM M+H
+pos,CE,IS_18:1(d7)CholEster M+NH4

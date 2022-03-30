@@ -1,0 +1,26 @@
+mode,class,IS
+neg,NA,ss_untargeted
+neg,LPA,IS_LPA(17:1) M-H
+neg,LPA-O,IS_LPA(17:1) M-H
+neg,LPC,IS_18:1(d7) Lyso PC M+HCOO-
+neg,LPC-O,IS_18:1(d7) Lyso PC M+HCOO-
+neg,LPE,IS_18:1(d7) Lyso PE M-H
+neg,LPE-O,IS_18:1(d7) Lyso PE M-H
+neg,LPG,IS_15:0-18:1(d7) PG M-H
+neg,LPI,IS_15:0-18:1(d7) PI M-H
+neg,LPS,IS_15:0-18:1(d7) PS M-H
+neg,PA,IS_15:0-18:1(d7) PA M-H
+neg,PA-O,IS_15:0-18:1(d7) PA M-H
+neg,PC,IS_15:0-18:1(d7) PC M+COOH-
+neg,PC-P,IS_15:0-18:1(d7) PC M+COOH-
+neg,PC-O,IS_15:0-18:1(d7) PC M+COOH-
+neg,PE,IS_15:0-18:1(d7) PE M-H
+neg,PE-P,IS_15:0-18:1(d7) PE M-H
+neg,PE-O,IS_15:0-18:1(d7) PE M-H
+neg,PG,IS_15:0-18:1(d7) PG M-H
+neg,PI,IS_15:0-18:1(d7) PI M-H
+neg,PS,IS_15:0-18:1(d7) PS M-H
+neg,FA,IS_d18:1-18:1(d9) SM M+COOH-
+neg,Cer,ss_untargeted
+neg,CerP,ss_untargeted
+neg,SM,IS_d18:1-18:1(d9) SM M+COOH-
