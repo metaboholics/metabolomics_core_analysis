@@ -6,7 +6,9 @@ pipeline <- function(df = data,
                      metadata_IS_neg,
                      metadata_IS_pos,
                      control,
-                     comparison
+                     comparison,
+                     const = 0,
+                     exclude = ''
                     ){
     
     # Normalization
@@ -20,6 +22,11 @@ pipeline <- function(df = data,
                     control = control
                    )
     
+    
+    df <- add_qc(df = data,
+                 analysis_name = analysis_name,
+                 data_name = data_name
+              )
 
     
     df <- limma_analysis(df = df,
@@ -27,7 +34,9 @@ pipeline <- function(df = data,
                          data_name = data_name,
                          col_name = 'unique_name',
                          col_value = 'norm_int',
-                         comparison = comparison
+                         comparison = comparison,
+                         const = const,
+                         exclude = exclude
                         )
     
     
@@ -494,13 +503,75 @@ get_control_mean_norm_int <- function(df, control){
     return(df)
 }
 
+add_qc <- function(df = data,
+                   analysis_name,
+                   data_name
+                  ){
+
+    message("Add quality control information.")
+    
+    cat("Calculate.\n")
+    qc <- df$analysis[[analysis_name]][[data_name]]$data %>%
+        
+        # Metabolites
+        # Metabolite passes the quality control if:
+            # Missingness < 10%, i.e. if the metabolite was detected in 90% of the samples
+        mutate(n_all_samples = n_distinct(sample)) %>%
+        group_by(unique_name) %>%
+        mutate(zeros_metabolite = sum(norm_int==0),
+               perc_zeros_metabolite = zeros_metabolite/n_all_samples,
+               qc_missingness_metabolite = case_when(perc_zeros_metabolite > 0.1 ~ 'failed',
+                                         perc_zeros_metabolite <= 0.1 ~ 'passed'
+                                        )
+              ) %>%
+        ungroup() %>%
+
+        # IQR
+        # Metabolite passes the quality control if:
+            # IQR is equal or larger than 5% of the normalized intensity (across all samples)
+        # That means metabolites which are constant across all conditions fail
+        group_by(unique_name) %>%
+        mutate(iqr_all_samples = IQR(norm_int),
+               avg_norm_int = mean(norm_int),
+               rel_iqr_metabolite = iqr_all_samples/avg_norm_int,
+               qc_iqr_metabolite = case_when(rel_iqr_metabolite < 0.05 ~ 'failed',
+                                              rel_iqr_metabolite >= 0.05 ~ 'passed'
+                                             )
+              ) %>%
+        ungroup() %>%
+
+        # Samples
+        # Sample passes the quality control if:
+            # Missingness < 10%, i.e. if 90% of the metabolites were detected in this sample
+        mutate(n_qc_passed_missingness_metabolites = n_distinct(unique_name[qc_missingness_metabolite == 'passed'])) %>%
+        group_by(sample) %>%
+        mutate(zeros_sample = sum(norm_int==0),
+               perc_zeros_sample = zeros_sample/n_qc_passed_missingness_metabolites,
+               qc_sample = case_when(perc_zeros_sample > 0.1 ~ 'failed',
+                                     perc_zeros_sample <= 0.1 ~ 'passed'
+                                    )
+              ) %>%
+        ungroup()
+        cat("Success: Calculate.\n")
+
+    cat("Write variables for output\n")
+    df$analysis[[analysis_name]][[data_name]]$data <- qc
+    cat("Success: Write variables for output\n")
+
+    message("Success: Add quality control information.")
+    
+    return(df)
+    
+}
+
 limma_analysis <- function(df = data,
                            analysis_name,
                            data_name,
                            col_name,
                            col_value,
                            comparison,
-                           const = 0
+                           const = 0,
+                           exclude = '' # See prep_limma_df
                           ){
 
     message("Limma analysis")
@@ -513,7 +584,7 @@ limma_analysis <- function(df = data,
     
     # Prepare dataframe
     cat("Prepare limma data frame\n")
-    data_limma <- prep_limma_df(df$analysis[[analysis_name]][[data_name]]$data, col_name, col_value)
+    data_limma <- prep_limma_df(df$analysis[[analysis_name]][[data_name]]$data, col_name, col_value, exclude)
     cat("Success: Prepare limma data frame\n")
 
     # Design matrix
@@ -593,10 +664,17 @@ limma_analysis <- function(df = data,
 
 prep_limma_df <- function(df,
                           col_name,
-                          col_value
+                          col_value,
+                          exclude # Vector specifying all features to exclude
+                                       # Create manually, e.g. by:
+                                       # exclude <- data$analysis$D8Phe_prot$intensity$data %>%
+                                       #     filter(qc_missingness_metabolite == 'failed') %>%
+                                       #     distinct(unique_name) %>%
+                                       #     pull() # Creates a vector
                          ){
     
-    df <- df %>%
+    df <- df%>%
+        filter(!unique_name %in% exclude) %>% # Remove features in 'exclude'        
         arrange(group) %>% # Important sorting step to make sure that groups are in a consistent order
         select(sample, all_of(col_name), all_of(col_value)) %>%
         pivot_wider(names_from='sample', values_from=all_of(col_value))
@@ -1053,54 +1131,6 @@ format_IPA <- function(df = data,
     
     message("Success: Create csv for IPA")
     
-    return(df)
-    
-}
-
-qc <- function(df = data,
-               analysis_name,
-               data_name
-              ){
-
-    qc <- df$analysis[[analysis_name]][[data_name]]$data %>%
-
-        # Metabolites
-        # Missing
-        mutate(n_all_samples = n_distinct(sample)) %>%
-        group_by(unique_name) %>%
-        mutate(zeros_metabolite = sum(norm_int==0),
-               perc_zeros_metabolite = zeros_metabolite/n_all_samples,
-               qc_measurements_metabolite = case_when(perc_zeros_metabolite > 0.1 ~ 'failed',
-                                         perc_zeros_metabolite <= 0.1 ~ 'passed'
-                                        )
-              ) %>%
-        ungroup() %>%
-
-        # IQR
-        group_by(unique_name) %>%
-        mutate(iqr_all_samples = IQR(norm_int),
-               avg_norm_int = mean(norm_int),
-               rel_iqr_all_samples = iqr_all_samples/avg_norm_int,
-               qc_iqr_all_samples = case_when(rel_iqr_all_samples < 0.05 ~ 'failed',
-                                              rel_iqr_all_samples >= 0.05 ~ 'passed'
-                                             )
-              ) %>%
-        ungroup() %>%
-
-
-        # Samples
-        mutate(n_qc_passed_metabolites = n_distinct(unique_name[qc_metabolite == 'passed'])) %>%
-        group_by(sample) %>%
-        mutate(zeros_sample = sum(norm_int==0),
-               perc_zeros_sample = zeros_sample/n_qc_passed_metabolites,
-               qc_sample = case_when(perc_zeros_sample > 0.1 ~ 'failed',
-                                     perc_zeros_sample <= 0.1 ~ 'passed'
-                                    )
-              ) %>%
-        ungroup()
-
-    df$analysis[[analysis_name]][[data_name]]$qc <- qc
-
     return(df)
     
 }
