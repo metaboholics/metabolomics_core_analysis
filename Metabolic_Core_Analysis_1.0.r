@@ -499,7 +499,8 @@ limma_analysis <- function(df = data,
                            data_name,
                            col_name,
                            col_value,
-                           comparison
+                           comparison,
+                           const = 0
                           ){
 
     message("Limma analysis")
@@ -534,7 +535,7 @@ limma_analysis <- function(df = data,
     rownames(data_limma) <- data_limma[,1]
     data_limma[,1] <- NULL
     m <- data.matrix(data_limma)
-    m <- log2(m)
+    m <- log2(m+const)
     cat("Success: Convert to matrix\n")
 
 
