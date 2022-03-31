@@ -844,7 +844,7 @@ metaboanalyst <- function(df = data,
 
 combine_csvs <- function(df = data,
                          analysis_name, # vector of analysis names
-                         data_name,
+                         data_name, # vector of data names
                          csv_source_name,
                          csv_target_name,
                          export = TRUE
@@ -854,10 +854,13 @@ combine_csvs <- function(df = data,
     
     cat("Loop over csvs\n")
     df_combined <- NULL
-    for (i in analysis_name){
-        analysis <- df$analysis[[i]][[data_name]]$csv[[csv_source_name]] %>%
-            mutate(analysis = i)
+    i = 1
+    while (i <= length(analysis_name)){
+        analysis <- df$analysis[[analysis_name[i]]][[data_name[i]]]$csv[[csv_source_name]] %>%
+            mutate(analysis = paste(analysis_name[i], data_name[i], sep='_'))
         df_combined <- rbind(df_combined, analysis)
+        
+        i = i+1
     }
     cat("Success: Loop over csvs\n")
 
