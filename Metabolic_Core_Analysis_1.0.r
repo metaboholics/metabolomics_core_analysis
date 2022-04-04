@@ -493,10 +493,10 @@ add_qc <- function(df = data,
             # Missingness < 10%, i.e. if the metabolite was detected in 90% of the samples
         mutate(n_all_samples = n_distinct(sample)) %>%
         group_by(unique_name) %>%
-        mutate(zeros_metabolite = sum(norm_int==0),
-               perc_zeros_metabolite = zeros_metabolite/n_all_samples,
-               qc_missingness_metabolite = case_when(perc_zeros_metabolite > 0.1 ~ 'failed',
-                                         perc_zeros_metabolite <= 0.1 ~ 'passed'
+        mutate(zeros_compound = sum(norm_int==0),
+               perc_zeros_compound = zeros_compound/n_all_samples,
+               qc_missingness = case_when(perc_zeros_compound > 0.1 ~ 'failed',
+                                         perc_zeros_compound <= 0.1 ~ 'passed'
                                         )
               ) %>%
         ungroup() %>%
@@ -508,10 +508,10 @@ add_qc <- function(df = data,
         group_by(unique_name) %>%
         mutate(iqr_all_samples = IQR(norm_int),
                avg_norm_int = mean(norm_int),
-               rel_iqr_metabolite = iqr_all_samples/avg_norm_int,
-               qc_iqr_metabolite = case_when(rel_iqr_metabolite < 0.05 ~ 'failed',
-                                              rel_iqr_metabolite >= 0.05 ~ 'passed'
-                                             )
+               rel_iqr_compound = iqr_all_samples/avg_norm_int,
+               qc_iqr = case_when(rel_iqr_compound < 0.05 ~ 'failed',
+                                  rel_iqr_compound >= 0.05 ~ 'passed'
+                                 )
               ) %>%
         ungroup() %>%
 
@@ -534,6 +534,89 @@ add_qc <- function(df = data,
     cat("Success: Write variables for output\n")
 
     message("Success: Add quality control information.")
+    
+    return(df)
+    
+}
+
+filter_compounds <- function(df = data,
+                             analysis_name,
+                             data_name,
+                             new_data_name,
+                             selection, # 'sd' or 'area'
+                             qc_missingness, # 'passed' when compounds that failed qc should be excluded
+                             qc_iqr # 'passed' when compounds that failed qc should be excluded
+                            ){
+    
+    
+    cat("Get data\n")
+    selected <- df$analysis[[analysis_name]][[data_name]]$data
+    cat("Success: Get data\n")
+    
+    if(qc_missingness == 'passed'){
+        
+        message("Remove compounds that failed missingness qc.")
+        
+        selected <- selected %>%
+            filter(qc_missingness == 'passed')
+        
+        message("Success: Remove compounds that failed missingness qc.")
+    }
+    
+    if(qc_iqr == 'passed'){
+        
+        message("Remove compounds that failed iqr qc.")
+        
+        selected <- selected %>%
+            filter(qc_iqr == 'passed')
+        
+        message("Success: Remove compounds that failed iqr qc.")
+    }
+    
+    
+    
+    message("Selecting mode for compounds")
+    
+    # Selection based on standard deviation
+    if(selection == 'sd'){
+        
+        cat("sd\n")        
+        selected <- selected %>%
+            group_by(compound, mode, group) %>%
+            mutate(perc_sd_groups = sd(norm_int)/mean(norm_int)) %>% # Percentage standard deviation for each group
+            ungroup() %>%
+
+            group_by(compound, mode) %>%
+            mutate(median_perc_sd_groups = median(perc_sd_groups)) %>% # Median standard deviation of all groups
+            ungroup() %>%
+            arrange(median_perc_sd_groups) %>%
+            distinct(compound, sample, .keep_all=TRUE) %>%
+            select(!c(perc_sd_groups, median_perc_sd_groups))        
+        cat("Success: sd\n")
+        
+    }
+    
+    
+    # Selection based on (raw/unnnormalized) peak area
+    if(selection == 'area'){
+        
+        cat("area\n")
+        selected <- selected %>%
+            group_by(unique_name) %>%
+            mutate(median_int = median(intensity)) %>%
+            ungroup() %>%
+            arrange(median_int) %>%
+            distinct(compound, sample, .keep_all=TRUE) %>%
+            select(!c(median_int))
+        cat("Success: area\n")
+        
+    }
+    
+    cat("Write variables for output\n")
+    df$analysis[[analysis_name]][[new_data_name]]$data <- selected
+    cat("Success: Write variables for output\n")
+    
+    message("Success: Selecting mode for compounds")
     
     return(df)
     
@@ -935,64 +1018,6 @@ combine_csvs <- function(df = data,
     }
     
     message("Success: Combine csvs\n")
-    
-    return(df)
-    
-}
-
-select_mode_for_compounds <- function(df = data,
-                                      analysis_name,
-                                      data_name,
-                                      new_data_name,
-                                      selection # 'sd' or 'area'
-                                     ){
-    
-    message("Selecting mode for compounds")
-    
-    cat("Get data\n")
-    complete <- df$analysis[[analysis_name]][[data_name]]$data
-    cat("Success: Get data\n")
-    
-    # Selection based on standard deviation
-    if(selection == 'sd'){
-        
-        cat("sd\n")        
-        selected <- complete %>%
-            group_by(compound, mode, group) %>%
-            mutate(perc_sd_groups = sd(norm_int)/mean(norm_int)) %>% # Percentage standard deviation for each group
-            ungroup() %>%
-
-            group_by(compound, mode) %>%
-            mutate(median_perc_sd_groups = median(perc_sd_groups)) %>% # Median standard deviation of all groups
-            ungroup() %>%
-            arrange(median_perc_sd_groups) %>%
-            distinct(compound, sample, .keep_all=TRUE) %>%
-            select(!c(perc_sd_groups, median_perc_sd_groups))        
-        cat("Success: sd\n")
-        
-    }
-    
-    
-    # Selection based on (raw/unnnormalized) peak area
-    if(selection == 'area'){
-        
-        cat("area\n")
-        selected <- complete %>%
-            group_by(unique_name) %>%
-            mutate(median_int = median(intensity)) %>%
-            ungroup() %>%
-            arrange(median_int) %>%
-            distinct(compound, sample, .keep_all=TRUE) %>%
-            select(!c(median_int))
-        cat("Success: area\n")
-        
-    }
-    
-    cat("Write variables for output\n")
-    df$analysis[[analysis_name]][[new_data_name]]$data <- selected
-    cat("Success: Write variables for output\n")
-    
-    message("Success: Selecting mode for compounds")
     
     return(df)
     
