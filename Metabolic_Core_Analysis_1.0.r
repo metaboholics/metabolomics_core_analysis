@@ -1,33 +1,10 @@
 pipeline <- function(df = data,
                      analysis_name,
                      data_name,
-                     excluded_groups,
-                     excluded_samples,
-                     metadata_IS_neg,
-                     metadata_IS_pos,
-                     control,
                      comparison,
                      const = 0,
                      exclude = ''
                     ){
-    
-    # Normalization
-    df <- normalize(df = df,
-                    analysis_name = analysis_name,
-                    data_name = data_name,
-                    excluded_groups = excluded_groups,
-                    excluded_samples = excluded_samples,
-                    metadata_IS_neg = metadata_IS_neg,
-                    metadata_IS_pos = metadata_IS_pos,
-                    control = control
-                   )
-    
-    
-    df <- add_qc(df = data,
-                 analysis_name = analysis_name,
-                 data_name = data_name
-              )
-
     
     df <- limma_analysis(df = df,
                          analysis_name = analysis_name,
@@ -70,8 +47,6 @@ pipeline <- function(df = data,
     return(df)
     
 }
-
-# Optional: combine csvs for easy analysis in Tableau
 
 load_libraries <- function(){
     library(tidyverse)
@@ -571,7 +546,7 @@ limma_analysis <- function(df = data,
                            col_value,
                            comparison,
                            const = 0,
-                           exclude = '' # See prep_limma_df
+                           exclude = '' # See prep_limma_df, usually not necessary because data is filtered before it is written in data_name$data
                           ){
 
     message("Limma analysis")
@@ -653,6 +628,7 @@ limma_analysis <- function(df = data,
     df$analysis[[analysis_name]][[data_name]]$limma$data_limma <- data_limma
     df$analysis[[analysis_name]][[data_name]]$limma$m <- m
     df$analysis[[analysis_name]][[data_name]]$limma$fit <- fit
+    df$analysis[[analysis_name]][[data_name]]$limma$plotSA <- plotSA(fit)
     df$analysis[[analysis_name]][[data_name]]$limma$ANOVA <- ANOVA
     df$analysis[[analysis_name]][[data_name]]$limma$pairwise <- pairwise
     cat("Success: Write variables for output\n")
