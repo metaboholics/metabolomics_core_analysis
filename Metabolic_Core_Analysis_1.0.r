@@ -46,7 +46,7 @@ pipeline <- function(df = data,
 load_libraries <- function(){
     library(tidyverse)
     library(limma)
-    library(MetaboAnalystR)
+    #library(MetaboAnalystR) # Loaded in the function instead to improve loading times
     library(rstatix)
     
     options(dplyr.summarise.inform = FALSE) # Suppresses "`summarise()` has grouped output by 'group'. You can override using the `.groups` argument."
@@ -432,8 +432,14 @@ normalize <- function(df = data,
         arrange(unique_name, sample, group)
     cat("Success: Calculate intensities relative to control\n")
     
-    cat("Success: Get intensities relative to control\n")
+    message('Success: Normalization.')
     
+
+    # Add quality control parameters
+    intensity <- add_qc(df = intensity,
+                   analysis_name = analysis_name,
+                   data_name = data_name
+                  )
     
     
     # Save information in respective normalization
@@ -441,7 +447,6 @@ normalize <- function(df = data,
     df$analysis[[analysis_name]][[data_name]]$data <- intensity
     cat("Success: Write variables for output\n")
     
-    message('Normalization successfull.')
     
     return(df)
     
@@ -473,7 +478,7 @@ get_control_mean_norm_int <- function(df, control){
     return(df)
 }
 
-add_qc <- function(df = data,
+add_qc <- function(df,
                    analysis_name,
                    data_name
                   ){
@@ -481,7 +486,7 @@ add_qc <- function(df = data,
     message("Add quality control information.")
     
     cat("Calculate.\n")
-    qc <- df$analysis[[analysis_name]][[data_name]]$data %>%
+    df <- df %>%
         
         # Metabolites
         # Metabolite passes the quality control if:
@@ -513,10 +518,10 @@ add_qc <- function(df = data,
         # Samples
         # Sample passes the quality control if:
             # Missingness < 10%, i.e. if 90% of the metabolites were detected in this sample
-        mutate(n_qc_passed_missingness_metabolites = n_distinct(unique_name[qc_missingness_metabolite == 'passed'])) %>%
+        mutate(n_qc_passed_missingness = n_distinct(unique_name[qc_missingness == 'passed'])) %>%
         group_by(sample) %>%
         mutate(zeros_sample = sum(norm_int==0),
-               perc_zeros_sample = zeros_sample/n_qc_passed_missingness_metabolites,
+               perc_zeros_sample = zeros_sample/n_qc_passed_missingness,
                qc_sample = case_when(perc_zeros_sample > 0.1 ~ 'failed',
                                      perc_zeros_sample <= 0.1 ~ 'passed'
                                     )
@@ -524,9 +529,6 @@ add_qc <- function(df = data,
         ungroup()
         cat("Success: Calculate.\n")
 
-    cat("Write variables for output\n")
-    df$analysis[[analysis_name]][[data_name]]$data <- qc
-    cat("Success: Write variables for output\n")
 
     message("Success: Add quality control information.")
     
@@ -892,6 +894,8 @@ metaboanalyst <- function(df = data,
                          ){
 
     message("Metaboanalyst")
+    
+    library(MetaboAnalystR)
     
     cat("Change working directory\n")
     dir.create(paste(df$metadata$working_directory, '/', analysis_name, '/metaboanalyst', sep=''), showWarnings = FALSE)
