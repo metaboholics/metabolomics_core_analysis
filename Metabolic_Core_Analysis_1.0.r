@@ -915,7 +915,7 @@ csv_IPA <- function(df = data,
     message("Create csv for IPA")
     
     cat("Get data from $csv$volcano\n")
-    data <- data$analysis[[analysis_name]][[data_name]]$csv$volcano %>%
+    data <- df$analysis[[analysis_name]][[data_name]]$csv$volcano %>%
         filter(id != '') # If metabolites have no id this field is empty but not NA
     cat("Success: Get data from $csv$volcano\n")
     
