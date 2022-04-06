@@ -38,11 +38,6 @@ pipeline <- function(df = data,
                             value = 'norm_int',
                             export = TRUE
                            )
-       
-    metaboanalyst(df = df,
-                  analysis_name = analysis_name,
-                  data_name = data_name,
-                  norm='LogNorm')
     
     return(df)
     
