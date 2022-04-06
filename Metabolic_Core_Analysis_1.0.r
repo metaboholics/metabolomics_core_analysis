@@ -32,13 +32,6 @@ pipeline <- function(df = data,
                       export = TRUE
                      )
     
-    # Requires csv_volcano()
-    df <- csv_IPA(df = df,
-                  analysis_name = analysis_name,
-                  data_name = data_name, # KeggID needs to be unique -> run select_mode_for_compounds first if required
-                  export = TRUE
-                 )
-    
     df <- csv_metaboanalyst(df = df,
                             analysis_name = analysis_name,
                             data_name = data_name,
