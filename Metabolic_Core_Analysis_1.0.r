@@ -805,9 +805,10 @@ csv_total <- function(df = data,
     if(export == TRUE){
         cat("Exporting csv\n")
         dir.create(paste(df$metadata$working_directory, '/', analysis_name, sep=''), showWarnings = FALSE)
-        dir.create(paste(df$metadata$working_directory, '/', analysis_name, '/csv', sep=''), showWarnings = FALSE)
+        dir.create(paste(df$metadata$working_directory, '/', analysis_name, '/', data_name, sep=''), showWarnings = FALSE)
+        dir.create(paste(df$metadata$working_directory, '/', analysis_name, '/', data_name, '/csv', sep=''), showWarnings = FALSE)
         
-        write.csv(df$analysis[[analysis_name]][[data_name]]$csv$total, paste(df$metadata$working_directory, '/', analysis_name, '/csv/', df$metadata$expID, '_', df$metadata$analysis_type, '_', analysis_name, '_', data_name, '_total.csv', sep=''), row.names=FALSE)
+        write.csv(df$analysis[[analysis_name]][[data_name]]$csv$total, paste(df$metadata$working_directory, '/', analysis_name, '/', data_name, '/csv/', df$metadata$expID, '_', df$metadata$analysis_type, '_', analysis_name, '_', data_name, '_total.csv', sep=''), row.names=FALSE)
         cat("Success: Exporting csv\n")
     }
 
@@ -845,9 +846,10 @@ csv_volcano <- function(df = data,
     if(export == TRUE){
         cat("Exporting csv\n")
         dir.create(paste(df$metadata$working_directory, '/', analysis_name, sep=''), showWarnings = FALSE)
-        dir.create(paste(df$metadata$working_directory, '/', analysis_name, '/csv', sep=''), showWarnings = FALSE)
+        dir.create(paste(df$metadata$working_directory, '/', analysis_name, '/', data_name, sep=''), showWarnings = FALSE)
+        dir.create(paste(df$metadata$working_directory, '/', analysis_name, '/', data_name, '/csv', sep=''), showWarnings = FALSE)
         
-        write.csv(df$analysis[[analysis_name]][[data_name]]$csv$volcano, paste(df$metadata$working_directory, '/', analysis_name, '/csv/', df$metadata$expID, '_', df$metadata$analysis_type, '_', analysis_name, '_', data_name, '_volcano.csv', sep=''), row.names=FALSE)
+        write.csv(df$analysis[[analysis_name]][[data_name]]$csv$volcano, paste(df$metadata$working_directory, '/', analysis_name, '/', data_name, '/csv/', df$metadata$expID, '_', df$metadata$analysis_type, '_', analysis_name, '_', data_name, '_volcano.csv', sep=''), row.names=FALSE)
         cat("Success: Exporting csv\n")
     }
 
@@ -896,65 +898,10 @@ csv_IPA <- function(df = data,
     if(export == TRUE){
         cat("Exporting csv\n")
         dir.create(paste(df$metadata$working_directory, '/', analysis_name, sep=''), showWarnings = FALSE)
-        dir.create(paste(df$metadata$working_directory, '/', analysis_name, '/csv', sep=''), showWarnings = FALSE)
+        dir.create(paste(df$metadata$working_directory, '/', analysis_name, '/', data_name, sep=''), showWarnings = FALSE)
+        dir.create(paste(df$metadata$working_directory, '/', analysis_name, '/', data_name, '/csv', sep=''), showWarnings = FALSE)
 
-        write.csv(IPA, paste(df$metadata$working_directory, '/', analysis_name, '/csv/', df$metadata$expID, '_', df$metadata$analysis_type, '_', analysis_name, '_', data_name, '_IPA.csv', sep=''), row.names=FALSE)
-        cat("Success: Exporting csv\n")
-    }
-    
-    cat("Write variables for output\n")
-    df$analysis[[analysis_name]][[data_name]]$csv$IPA <- IPA
-    cat("Success: Write variables for output\n")
-    
-    message("Success: Create csv for IPA")
-    
-    return(df)
-    
-}
-
-csv_IPA <- function(df = data,
-                       analysis_name,
-                       data_name, # KeggID needs to be unique -> run select_mode_for_compounds first if required
-                       export = TRUE
-                      ){
-    
-    message("Create csv for IPA")
-    
-    cat("Get data from $csv$volcano\n")
-    data <- df$analysis[[analysis_name]][[data_name]]$csv$volcano %>%
-        filter(id != '') # If metabolites have no id this field is empty but not NA
-    cat("Success: Get data from $csv$volcano\n")
-    
-    cat("Get log2fc\n")
-    IPA_log2fc <- data %>%
-        select(comparison, id, logFC) %>%
-        pivot_wider(names_from='comparison', values_from='logFC', names_prefix='log2fc_')
-    cat("Success: Get log2fc\n")
-
-    cat("Get p-value\n")
-    IPA_pval <- data %>%
-        select(comparison, id, P.Value) %>%
-        pivot_wider(names_from='comparison', values_from='P.Value', names_prefix='P.Value_')
-    cat("Success: Get p-value\n")
-
-    cat("Get adjusted p-value\n")
-    IPA_adjpval <- data %>%
-        select(comparison, id, adj.P.Val) %>%
-        pivot_wider(names_from='comparison', values_from='adj.P.Val', names_prefix='adj.P.Val_')
-    cat("Success: Get adjusted p-value\n")
-
-    
-    cat("Merge data\n")
-    IPA <- cbind(IPA_log2fc,IPA_pval[,-1],IPA_adjpval[,-1])
-    cat("Success: Merge data\n")
-    
-    
-    if(export == TRUE){
-        cat("Exporting csv\n")
-        dir.create(paste(df$metadata$working_directory, '/', analysis_name, sep=''), showWarnings = FALSE)
-        dir.create(paste(df$metadata$working_directory, '/', analysis_name, '/csv', sep=''), showWarnings = FALSE)
-
-        write.csv(IPA, paste(df$metadata$working_directory, '/', analysis_name, '/csv/', df$metadata$expID, '_', df$metadata$analysis_type, '_', analysis_name, '_', data_name, '_IPA.csv', sep=''), row.names=FALSE)
+        write.csv(IPA, paste(df$metadata$working_directory, '/', analysis_name, '/', data_name, '/csv/', df$metadata$expID, '_', df$metadata$analysis_type, '_', analysis_name, '_', data_name, '_IPA.csv', sep=''), row.names=FALSE)
         cat("Success: Exporting csv\n")
     }
     
@@ -1000,10 +947,10 @@ csv_metaboanalyst <- function(df = data,
     if(export == TRUE){
         cat("Exporting csv\n")
         dir.create(paste(df$metadata$working_directory, '/', analysis_name, sep=''), showWarnings = FALSE)
-        dir.create(paste(df$metadata$working_directory, '/', analysis_name, '/csv', sep=''), showWarnings = FALSE)
+        dir.create(paste(df$metadata$working_directory, '/', analysis_name, '/', data_name, sep=''), showWarnings = FALSE)
+        dir.create(paste(df$metadata$working_directory, '/', analysis_name, '/', data_name, '/csv', sep=''), showWarnings = FALSE)
         
-        dir.create(paste(df$metadata$working_directory, '/', analysis_name, '/metaboanalyst', sep=''), showWarnings = FALSE)
-        write.csv(df$analysis[[analysis_name]][[data_name]]$csv$metaboanalyst, paste(df$metadata$working_directory, '/', analysis_name, '/csv/', df$metadata$expID, '_', df$metadata$analysis_type, '_', analysis_name, '_', data_name, '_metaboanalyst.csv', sep=''), row.names=FALSE)
+        write.csv(df$analysis[[analysis_name]][[data_name]]$csv$metaboanalyst, paste(df$metadata$working_directory, '/', analysis_name, '/', data_name, '/csv/', df$metadata$expID, '_', df$metadata$analysis_type, '_', analysis_name, '_', data_name, '_metaboanalyst.csv', sep=''), row.names=FALSE)
         cat("Success: Exporting csv\n")
     }
 
@@ -1022,9 +969,9 @@ metaboanalyst <- function(df = data,
     
     library(MetaboAnalystR)
     
-    cat("Change working directory\n")
-    dir.create(paste(df$metadata$working_directory, '/', analysis_name, '/metaboanalyst', sep=''), showWarnings = FALSE)
-    setwd(paste(df$metadata$working_directory, '/', analysis_name, '/metaboanalyst', sep=''))
+    cat("Change working directory\n")        
+    dir.create(paste(df$metadata$working_directory, '/', analysis_name, '/', data_name, '/metaboanalyst', sep=''), showWarnings = FALSE)
+    setwd(paste(df$metadata$working_directory, '/', analysis_name, '/', data_name, '/metaboanalyst', sep=''))
     cat("Success: Change working directory\n")
 
     # General setup
