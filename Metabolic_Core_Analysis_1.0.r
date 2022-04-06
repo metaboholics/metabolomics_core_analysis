@@ -715,22 +715,23 @@ limma_analysis <- function(df = data,
         tibble::rownames_to_column("unique_name") %>%
         pivot_longer(!unique_name, names_to='sample', values_to='limma_int')
     
-    original <- df$analysis[[analysis_name]][[data_name]]$data
+    original <- df$analysis[[analysis_name]][[data_name]]$data %>%
+        mutate(limma_int = NULL) # Drop 'limma_int' in order to replace it, otherwise when running pipeline a second time the merge duplicates this column
     
-    added<- merge(original, transformed, by=c('unique_name','sample'), all.x=TRUE)
+    added <- merge(original, transformed, by=c('unique_name','sample'), all.x=TRUE)
     
     cat("Success: Add transformed data to original data frame\n")
         
 
     # Add data to respective analysis
     cat("Write variables for output\n")
-    df$analysis[[analysis_name]][[data_name]]$data <- added
     df$analysis[[analysis_name]][[data_name]]$limma$data_limma <- data_limma
     df$analysis[[analysis_name]][[data_name]]$limma$m <- m
     df$analysis[[analysis_name]][[data_name]]$limma$fit <- fit
     df$analysis[[analysis_name]][[data_name]]$limma$plotSA <- plotSA(fit)
     df$analysis[[analysis_name]][[data_name]]$limma$ANOVA <- ANOVA
     df$analysis[[analysis_name]][[data_name]]$limma$pairwise <- pairwise
+    df$analysis[[analysis_name]][[data_name]]$data <- added
     cat("Success: Write variables for output\n")
     
     message("Success: Limma analysis")
