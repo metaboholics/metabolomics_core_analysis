@@ -39,6 +39,13 @@ pipeline <- function(df = data,
                             export = TRUE
                            )
     
+    df <- csv_metaboanalyst(df = df,
+                            analysis_name = analysis_name,
+                            data_name = data_name,
+                            value = 'limma_int',
+                            export = TRUE
+                           )
+    
     return(df)
     
 }
@@ -808,7 +815,7 @@ csv_total <- function(df = data,
         dir.create(paste(df$metadata$working_directory, '/', analysis_name, '/', data_name, sep=''), showWarnings = FALSE)
         dir.create(paste(df$metadata$working_directory, '/', analysis_name, '/', data_name, '/csv', sep=''), showWarnings = FALSE)
         
-        write.csv(df$analysis[[analysis_name]][[data_name]]$csv$total, paste(df$metadata$working_directory, '/', analysis_name, '/', data_name, '/csv/', df$metadata$expID, '_', df$metadata$analysis_type, '_', analysis_name, '_', data_name, '_total.csv', sep=''), row.names=FALSE)
+        write.csv(total, paste(df$metadata$working_directory, '/', analysis_name, '/', data_name, '/csv/', df$metadata$expID, '_', df$metadata$analysis_type, '_', analysis_name, '_', data_name, '_total.csv', sep=''), row.names=FALSE)
         cat("Success: Exporting csv\n")
     }
 
@@ -849,7 +856,7 @@ csv_volcano <- function(df = data,
         dir.create(paste(df$metadata$working_directory, '/', analysis_name, '/', data_name, sep=''), showWarnings = FALSE)
         dir.create(paste(df$metadata$working_directory, '/', analysis_name, '/', data_name, '/csv', sep=''), showWarnings = FALSE)
         
-        write.csv(df$analysis[[analysis_name]][[data_name]]$csv$volcano, paste(df$metadata$working_directory, '/', analysis_name, '/', data_name, '/csv/', df$metadata$expID, '_', df$metadata$analysis_type, '_', analysis_name, '_', data_name, '_volcano.csv', sep=''), row.names=FALSE)
+        write.csv(volcano, paste(df$metadata$working_directory, '/', analysis_name, '/', data_name, '/csv/', df$metadata$expID, '_', df$metadata$analysis_type, '_', analysis_name, '_', data_name, '_volcano.csv', sep=''), row.names=FALSE)
         cat("Success: Exporting csv\n")
     }
 
@@ -918,7 +925,7 @@ csv_IPA <- function(df = data,
 csv_metaboanalyst <- function(df = data,
                               analysis_name,
                               data_name,
-                              value,
+                              value, # usually 'norm_int', name of column in original data frame that contains the data
                               export = TRUE
                              ){    
     
@@ -939,9 +946,10 @@ csv_metaboanalyst <- function(df = data,
     metaboanalyst <- rbind(c('', as.character(groups$group)), metaboanalyst)
     cat("Success: Add group row\n")
     
-       
+    
     cat("Write variables for output\n") 
-    df$analysis[[analysis_name]][[data_name]]$csv$metaboanalyst <- metaboanalyst
+    metaboanalyst_value = paste('metaboanalyst', value, sep='_')
+    df$analysis[[analysis_name]][[data_name]]$csv[[metaboanalyst_value]] <- metaboanalyst
     cat("Success: Write variables for output\n") 
     
     if(export == TRUE){
@@ -950,7 +958,7 @@ csv_metaboanalyst <- function(df = data,
         dir.create(paste(df$metadata$working_directory, '/', analysis_name, '/', data_name, sep=''), showWarnings = FALSE)
         dir.create(paste(df$metadata$working_directory, '/', analysis_name, '/', data_name, '/csv', sep=''), showWarnings = FALSE)
         
-        write.csv(df$analysis[[analysis_name]][[data_name]]$csv$metaboanalyst, paste(df$metadata$working_directory, '/', analysis_name, '/', data_name, '/csv/', df$metadata$expID, '_', df$metadata$analysis_type, '_', analysis_name, '_', data_name, '_metaboanalyst.csv', sep=''), row.names=FALSE)
+        write.csv(metaboanalyst, paste(df$metadata$working_directory, '/', analysis_name, '/', data_name, '/csv/', df$metadata$expID, '_', df$metadata$analysis_type, '_', analysis_name, '_', data_name, '_', value, '_metaboanalyst.csv', sep=''), row.names=FALSE)
         cat("Success: Exporting csv\n")
     }
 
@@ -962,6 +970,7 @@ csv_metaboanalyst <- function(df = data,
 metaboanalyst <- function(df = data,
                           analysis_name,
                           data_name,
+                          value, # usually 'norm_int'; name of column in original data frame that contains the data
                           norm
                          ){
 
@@ -977,7 +986,7 @@ metaboanalyst <- function(df = data,
     # General setup
     cat("Initialization\n")
     mSet<-InitDataObjects("pktable", "stat", FALSE)
-    mSet<-Read.TextData(mSet, paste('../csv/', df$metadata$expID, '_', df$metadata$analysis_type, '_', analysis_name, '_', data_name, '_metaboanalyst.csv', sep=''), "colu", "disc");
+    mSet<-Read.TextData(mSet, paste('../csv/', df$metadata$expID, '_', df$metadata$analysis_type, '_', analysis_name, '_', data_name, '_', value, '_metaboanalyst.csv', sep=''), "colu", "disc");
     mSet<-SanityCheckData(mSet)
     mSet<-ReplaceMin(mSet);
     mSet<-SanityCheckData(mSet)
