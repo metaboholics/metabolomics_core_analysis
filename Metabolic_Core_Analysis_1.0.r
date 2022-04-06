@@ -701,10 +701,23 @@ limma_analysis <- function(df = data,
     pairwise <- aggregate_pairwise_results(fit, comparison)
     cat("Success: Aggregate pairwise comparisons\n")
     
+    
+    cat("Add transformed data to original data frame\n")
+    
+    transformed <- as.data.frame(m) %>%
+        tibble::rownames_to_column("unique_name") %>%
+        pivot_longer(!unique_name, names_to='sample', values_to='limma_int')
+    
+    original <- df$analysis[[analysis_name]][[data_name]]$data
+    
+    added<- merge(original, transformed, by=c('unique_name','sample'), all.x=TRUE)
+    
+    cat("Success: Add transformed data to original data frame\n")
         
 
     # Add data to respective analysis
     cat("Write variables for output\n")
+    df$analysis[[analysis_name]][[data_name]]$data <- added
     df$analysis[[analysis_name]][[data_name]]$limma$data_limma <- data_limma
     df$analysis[[analysis_name]][[data_name]]$limma$m <- m
     df$analysis[[analysis_name]][[data_name]]$limma$fit <- fit
